@@ -12,4 +12,4 @@
 
 # What is the advantage of implement the game outselves
 # The information provided by the environment is not sufficient
-# To adjust the rules to make it more easier.
+# Add more restrictions to make the game simpler.
