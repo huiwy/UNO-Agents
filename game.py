@@ -56,7 +56,7 @@ class IsoMappedState:
     color_order = np.argsort(color_axis @ np.ones(13))[::-1]
     number_order = np.argsort(number_axis @ np.ones(4))[9:0:-1]
 
-    new = np.empty_like(number_axis)
+    new = number_axis.copy()
     new[np.arange(1, 10)] = number_axis[number_order]
     new = new.transpose()
 
