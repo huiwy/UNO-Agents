@@ -37,11 +37,11 @@ class IsoMappedState:
     Given a hand, map it to a isomorphic hand with predetermined order:
       color of maximum number of cards -> Red
       ...
-      number with maximum number of cards -> 0
+      number with maximum number of cards -> 1
       ...
       
     Note:
-      Only the color of functional cards will change.
+      Only the color of functional cards and 0 will change.
       Wild cards are not included in the map
 
     eg.
@@ -54,10 +54,10 @@ class IsoMappedState:
     number_axis = color_axis.transpose()
 
     color_order = np.argsort(color_axis @ np.ones(13))[::-1]
-    number_order = np.argsort(number_axis @ np.ones(4))[9::-1]
+    number_order = np.argsort(number_axis @ np.ones(4))[9:0:-1]
 
     new = np.empty_like(number_axis)
-    new[np.arange(13)] = number_axis[number_order]
+    new[np.arange(1, 10)] = number_axis[number_order]
     new = new.transpose()
 
     new_new = np.empty_like(color_axis)

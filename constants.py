@@ -10,10 +10,10 @@ INT2CARD = {}
 CARD2INT = {}
 
 for c in COLORS:
-  # DECK.append(c + '0')
-  # INT2CARD[counter] = c + '0'
-  # CARD2INT[c + '0'] = counter
-  # counter += 1
+  DECK.append(c + '0')
+  INT2CARD[counter] = c + '0'
+  CARD2INT[c + '0'] = counter
+  counter += 1
   for i in range(0, 10):
     DECK.append(c + str(i))
     DECK.append(c + str(i))
