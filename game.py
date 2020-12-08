@@ -37,7 +37,7 @@ class IsoMappedState:
     Given a hand, map it to a isomorphic hand with predetermined order:
       color of maximum number of cards -> Red
       ...
-      number with maximum number of cards -> 1
+      number with maximum number of cards -> 0
       ...
       
     Note:
