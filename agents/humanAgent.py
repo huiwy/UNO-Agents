@@ -7,15 +7,17 @@ class HumanAgent(BaseAgent):
     super().__init__()
 
   def get_action(self, state, possible_actions):
-    print("Owned cards: ")
+    print("\nOwned cards: ", end = "\n\t")
     for i, j in enumerate(state[0]):
       if j > 0:
-        print("\t"+str(INT2CARD[i]) +':' + str(j) + ',', end = " ")
+        print(str(INT2CARD[i]) +':' + str(j), end = ",\t")
     
     print("\nValid actions: \n \t", end="")
-    for i in possible_actions[:-1]:
-      print(INT2CARD[i], end =", ")
-    print("Draw")
+    for i in possible_actions:
+      if i == 54:
+        print('draw')
+      else:
+        print(INT2CARD[i], end =",\t")
 
     if state[1] in COLORS:
       print("previous color :", state[1])

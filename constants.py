@@ -1,3 +1,5 @@
+# Cards, colors, and their maps
+
 COLORS = ['R', 'Y', 'G', 'B']
 UCARDS = ['+2', 'skip', 'reverse']
 DECK = []

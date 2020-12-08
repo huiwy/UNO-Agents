@@ -31,16 +31,55 @@ from constants import DECK, INT2CARD, CARD2INT, COLORS
 #   def get_next_state(self, ):
 #     pass
   
+class IsoMappedState:
+  def __init__(self, hand):
+    """
+    Given a hand, map it to a isomorphic hand with predetermined order:
+      color of maximum number of cards -> Red
+      ...
+      number with maximum number of cards -> 1
+      ...
+      
+    Note:
+      Only the color of functional cards will change.
+      Wild cards are not included in the map
 
+    eg.
+      B1, B2, Y2, B+2 -> R1, R2, R+2, Y1
+    """
+    self.hand = hand
+    colored_cards = hand[:52].copy()
+
+    color_axis = colored_cards.reshape((4, 13))
+    number_axis = color_axis.transpose()
+
+    color_order = np.argsort(color_axis @ np.ones(13))[::-1]
+    number_order = np.argsort(number_axis @ np.ones(4))[9::-1]
+
+    new = np.empty_like(number_axis)
+    new[np.arange(13)] = number_axis[number_order]
+    new = new.transpose()
+
+    new_new = np.empty_like(color_axis)
+    new_new[np.arange(4)] = new[color_order]
+
+    new_new = new_new.reshape(-1)
+
+    isomorphic_hand = np.zeros(54, dtype=np.int64)
+    isomorphic_hand[:52] = new_new
+    isomorphic_hand[52:] = hand[52:]
+
+    self.isomorphic_hand = isomorphic_hand
 
 class UNO:
-  def __init__(self, agents, mode = "infinite deck", state_map = False):
+  def __init__(self, agents, mode = "infinite deck", state_map = False, forced_draw_only = True):
     """
     UNO class contains the game logic, hold the basic information of the game,
     can be made to contain more inforamtion to better policies.
     """
     self.agents = agents
     self.state_map = state_map
+    self.forced_draw_only = forced_draw_only
 
     self.players = list(range(len(agents)))
     self.current_player = self.players[0]
@@ -178,7 +217,9 @@ class UNO:
       available_cards[num+39] = 1
     valid_actions = np.nonzero(available_cards * owned_cards)[0].tolist()
     # add the last draw action
-    valid_actions.append(54)
+    if not self.forced_draw_only and len(valid_actions) == 0:
+      valid_actions.append(54)
+    
     return valid_actions
 
   def init_dealer(self, mode):
@@ -259,4 +300,3 @@ def play(agents, mode = "infinite deck", state_map = False):
       return winner
     uno.next_player()
     uno.penalize()
-
