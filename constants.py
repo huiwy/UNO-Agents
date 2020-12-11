@@ -14,7 +14,7 @@ for c in COLORS:
   INT2CARD[counter] = c + '0'
   CARD2INT[c + '0'] = counter
   counter += 1
-  for i in range(0, 10):
+  for i in range(1, 10):
     DECK.append(c + str(i))
     DECK.append(c + str(i))
     INT2CARD[counter] = c + str(i)

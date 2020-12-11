@@ -8,4 +8,4 @@ class RandomAgent(BaseAgent):
     super().__init__()
 
   def get_action(self, state, possible_actions):
-    return choice(len(possible_actions)), choice(4)
+    return choice(possible_actions), choice(4)

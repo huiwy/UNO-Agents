@@ -102,6 +102,7 @@ class UNO:
     """
     card = self.dealer()
     idx = CARD2INT[card]
+
     self.hands[player][idx] += 1
 
 
@@ -138,7 +139,7 @@ class UNO:
 
       the first int is the card to play 54 means draw, the second is wild color if necessary.
 
-    Eeturns
+    Returns
     ---
       Boolean:
 
@@ -217,7 +218,7 @@ class UNO:
       available_cards[num+39] = 1
     valid_actions = np.nonzero(available_cards * owned_cards)[0].tolist()
     # add the last draw action
-    if not self.forced_draw_only and len(valid_actions) == 0:
+    if not self.forced_draw_only or len(valid_actions) == 0:
       valid_actions.append(54)
     
     return valid_actions
@@ -258,7 +259,7 @@ class UNO:
     if self.current_player == len(self.players):
       self.current_player = 0
     elif self.current_player == -1:
-      self.current_player = len(self.players)
+      self.current_player = len(self.players) - 1
 
   def penalize(self):
     """
@@ -274,6 +275,7 @@ class UNO:
       self.draw(self.current_player)
       self.draw(self.current_player)
       self.draw(self.current_player)
+    self.penalty = None
 
 def play(agents, mode = "infinite deck", state_map = False):
   """
