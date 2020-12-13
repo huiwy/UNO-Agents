@@ -1,6 +1,6 @@
-from .utils.baseAgent import BaseAgent
+from agents.utils.baseAgent import BaseAgent
+from utils.constants import DECK, INT2CARD, CARD2INT, COLORS
 
-from .constants import DECK, INT2CARD, CARD2INT, COLORS
 from numpy.random import choice
 
 class RandomAgent(BaseAgent):
@@ -8,5 +8,5 @@ class RandomAgent(BaseAgent):
     super().__init__()
     self.name = name
 
-  def get_action(self, state, possible_actions):
+  def get_action(self, state, possible_actions, aux=None):
     return choice(possible_actions), choice(4)
