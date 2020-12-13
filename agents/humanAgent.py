@@ -1,13 +1,12 @@
-from .utils.baseAgent import BaseAgent
-from .constants import DECK, INT2CARD, CARD2INT, COLORS
-
+from utils.constants import DECK, INT2CARD, CARD2INT, COLORS
+from agents.utils.baseAgent import BaseAgent
 
 class HumanAgent(BaseAgent):
   def __init__(self, name="HumanAgent"):
     super().__init__()
     self.name = name
 
-  def get_action(self, state, possible_actions):
+  def get_action(self, state, possible_actions, aux=None):
     print("="*20 + " %s\'s turn " % self.name + "="*20)
 
     if state[1] in COLORS:
@@ -18,15 +17,15 @@ class HumanAgent(BaseAgent):
     print("Owned cards: ", end = "\n\t")
     for i, j in enumerate(state[0]):
       if j > 0:
-        print(str(INT2CARD[i]) +"*" + str(j), end = "\t")
+        print("[%s]*%s"% (INT2CARD[i], j), end = "\t")
   
-    print("\nValid actions: \n \t", end="")
+    print("\nValid actions: \n \t", end = "")
     count = 0
     for i in possible_actions:
       if i == 54:
-        print('%s:%s' % (count, "draw"), end ="\t")
+        print('%s:[%s]' % (count, "draw"), end = "\t")
       else:
-        print('%s:%s' % (count, INT2CARD[i]), end ="\t")
+        print('%s:[%s]' % (count, INT2CARD[i]), end = "\t")
       count += 1
 
     print("\n----------\nYour action: ")
