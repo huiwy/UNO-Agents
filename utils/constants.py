@@ -1,3 +1,5 @@
+# Cards, colors, and their maps
+
 COLORS = ['R', 'Y', 'G', 'B']
 UCARDS = ['+2', 'skip', 'reverse']
 DECK = []
@@ -20,7 +22,7 @@ for c in COLORS:
     counter += 1
   for u in UCARDS:
     DECK.append(c + u)
-    INT2CARD[counter] =c + u
+    INT2CARD[counter] = c + u
     CARD2INT[c + u] = counter
     counter += 1
 
