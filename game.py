@@ -18,7 +18,7 @@ from itertools import cycle
 from random import choice, shuffle
 import numpy as np
 
-from constants import DECK, INT2CARD, CARD2INT, COLORS
+from utils.constants import DECK, INT2CARD, CARD2INT, COLORS
 
 # class UNOState:
 #   def __init__(self, agents, mode = "infinite deck"):
@@ -72,14 +72,14 @@ class IsoMappedState:
     self.isomorphic_hand = isomorphic_hand
 
 class UNO:
-  def __init__(self, agents, mode = "infinite deck", state_map = False, forced_draw_only = True):
+  def __init__(self, agents, mode = "infinite deck", state_map = False, only_draw_when_necessary = True):
     """
     UNO class contains the game logic, hold the basic information of the game,
     can be made to contain more inforamtion to better policies.
     """
     self.agents = agents
     self.state_map = state_map
-    self.forced_draw_only = forced_draw_only
+    self.only_draw_when_necessary = only_draw_when_necessary
 
     self.players = list(range(len(agents)))
     self.current_player = self.players[0]
@@ -115,7 +115,13 @@ class UNO:
     """
     state = self.get_state()
     possible_actions = self.get_valid_actions()
-    action = self.agents[self.current_player].get_action(state, possible_actions)
+    possible_cards = DECK if self.mode == 'infinite deck' else self.wasted
+
+    aux = {"current_player": self.current_player, \
+          "hands": self.hands, \
+          "possible_cards": possible_cards
+    }
+    action = self.agents[self.current_player].get_action(state, possible_actions, aux)
     return action
 
   def get_state(self):
@@ -218,7 +224,7 @@ class UNO:
       available_cards[num+39] = 1
     valid_actions = np.nonzero(available_cards * owned_cards)[0].tolist()
     # add the last draw action
-    if not self.forced_draw_only or len(valid_actions) == 0:
+    if not self.only_draw_when_necessary or len(valid_actions) == 0:
       valid_actions.append(54)
     
     return valid_actions
@@ -292,6 +298,8 @@ def play(agents, mode = "infinite deck", state_map = False):
   Whether the deck is "infinite deck" or "finite deck", default "infinite deck".
   """
   uno = UNO(agents, mode, state_map)
+
+  turns = 1
   while True:
     while True:
       action = uno.get_action()
@@ -299,6 +307,8 @@ def play(agents, mode = "infinite deck", state_map = False):
         break
     if uno.current_win():
       winner = uno.current_player
-      return winner
+      # return the winner and the number of turns in total
+      return (winner, turns)
     uno.next_player()
+    turns += 1
     uno.penalize()
