@@ -1,5 +1,5 @@
 from .utils.baseAgent import BaseAgent
-from .constants import DECK, INT2CARD, CARD2INT, COLORS
+from utils.constants import DECK, INT2CARD, CARD2INT, COLORS
 
 
 class HumanAgent(BaseAgent):

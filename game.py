@@ -14,11 +14,13 @@
 # The information provided by the environment is not sufficient
 # Add more restrictions to make the game simpler.
 
+from numpy.lib.arraysetops import isin
+from agents.dqnAgent import DQNAgent
 from itertools import cycle
 from random import choice, shuffle
 import numpy as np
 
-from constants import DECK, INT2CARD, CARD2INT, COLORS
+from utils.constants import DECK, INT2CARD, CARD2INT, COLORS
 
 # class UNOState:
 #   def __init__(self, agents, mode = "infinite deck"):
@@ -94,6 +96,10 @@ class UNO:
       for _ in range(7):
         self.draw(i)
 
+    for i in self.players:
+      self.agents[self.players[i]].init_game(self.hands[i], 
+                                             i, self.players, self)
+
     self.previous_card = None
 
   def draw(self, player):
@@ -104,7 +110,6 @@ class UNO:
     idx = CARD2INT[card]
 
     self.hands[player][idx] += 1
-
 
   def get_action(self):
     """get_action
@@ -127,6 +132,10 @@ class UNO:
     if self.state_map:
       raise NotImplementedError
     else:
+      if isinstance(self.agents[self.current_player], DQNAgent):
+        self.agents[self.current_player].receive_next_state(
+                        self.hands[self.current_player], 0)
+
       return (self.hands[self.current_player], self.previous_card)
 
   def apply_action(self, action):
@@ -145,6 +154,10 @@ class UNO:
 
         Whether this player decides to draw.
     """
+
+    for a in self.agents:
+      a.receive_action(action, self.current_player)
+
     if action[0] == 54:
       # draw 1 card
       idx = CARD2INT[self.dealer()]
@@ -184,7 +197,12 @@ class UNO:
     ---
     Boolean: whether the current player is a winner.
     """
-    return self.hands[self.current_player].sum() == 0
+
+    win = self.hands[self.current_player].sum() == 0
+    if win and isinstance(self.agents[0], DQNAgent):
+      self.agents[0].receive_next_state("End", int(win)*2 - 1)
+
+    return win
 
   def get_valid_actions(self):
     """
@@ -221,6 +239,9 @@ class UNO:
     if not self.forced_draw_only or len(valid_actions) == 0:
       valid_actions.append(54)
     
+    for a in self.agents:
+      a.receive_availiable_cards(available_cards, self.current_player)
+
     return valid_actions
 
   def init_dealer(self, mode):
@@ -232,7 +253,8 @@ class UNO:
     else:
       self.dealer = self.finite_dealer
       deck = DECK.copy()
-      self.deck = shuffle(deck)
+      shuffle(deck)
+      self.deck = deck
       self.wasted = []
 
   def inf_dealer(self):
@@ -246,7 +268,8 @@ class UNO:
     Finite dealer. The size of DECK is finite
     """
     if len(self.deck) == 0:
-      self.deck = shuffle(self.wasted)
+      shuffle(self.wasted)
+      self.deck = self.wasted
       self.wasted = []
     return self.deck.pop()
   
@@ -270,14 +293,27 @@ class UNO:
     elif self.penalty == "+2":
       self.draw(self.current_player)
       self.draw(self.current_player)
+      for a in self.agents:
+        a.receive_draw(self.current_player, 2)
     elif self.penalty == "+4":
       self.draw(self.current_player)
       self.draw(self.current_player)
       self.draw(self.current_player)
       self.draw(self.current_player)
+      for a in self.agents:
+        a.receive_draw(self.current_player, 4)
     self.penalty = None
 
-def play(agents, mode = "infinite deck", state_map = False):
+  def get_visible_cards(self, id):
+    if self.mode == "infinite deck":
+      return self.hands
+    else: 
+      visible = self.hands[id].copy()
+      for i in self.wasted:
+        visible[CARD2INT[i]] += 1
+      return visible
+
+def play(agents, mode = "infinite deck", state_map = False, forced_draw_only = False):
   """
   play a game
 
@@ -291,7 +327,7 @@ def play(agents, mode = "infinite deck", state_map = False):
 
   Whether the deck is "infinite deck" or "finite deck", default "infinite deck".
   """
-  uno = UNO(agents, mode, state_map)
+  uno = UNO(agents, mode, state_map, forced_draw_only)
   while True:
     while True:
       action = uno.get_action()

@@ -3,3 +3,6 @@
 *.ipynb
 /.ipynb_checkpoints
 /.vscode
+
+*.pkl
+*.log
