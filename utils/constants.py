@@ -1,6 +1,6 @@
 # Cards, colors, and their maps
 
-COLORS = ['R', 'Y', 'G', 'B']
+COLORS = ['r', 'y', 'g', 'b']
 UCARDS = ['+2', 'skip', 'reverse']
 DECK = []
 
