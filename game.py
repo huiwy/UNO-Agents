@@ -120,7 +120,14 @@ class UNO:
     """
     state = self.get_state()
     possible_actions = self.get_valid_actions()
-    action = self.agents[self.current_player].get_action(state, possible_actions)
+
+    possible_cards = DECK if self.mode == 'infinite deck' else self.wasted
+
+    aux = {"current_player": self.current_player, \
+          "hands": self.hands, \
+          "possible_cards": possible_cards
+    }
+    action = self.agents[self.current_player].get_action(state, possible_actions, aux)
     return action
 
   def get_state(self):
@@ -313,7 +320,7 @@ class UNO:
         visible[CARD2INT[i]] += 1
       return visible
 
-def play(agents, mode = "infinite deck", state_map = False, forced_draw_only = False):
+def play(game):
   """
   play a game
 
@@ -327,14 +334,13 @@ def play(agents, mode = "infinite deck", state_map = False, forced_draw_only = F
 
   Whether the deck is "infinite deck" or "finite deck", default "infinite deck".
   """
-  uno = UNO(agents, mode, state_map, forced_draw_only)
   while True:
     while True:
-      action = uno.get_action()
-      if uno.apply_action(action):
+      action = game.get_action()
+      if game.apply_action(action):
         break
-    if uno.current_win():
-      winner = uno.current_player
+    if game.current_win():
+      winner = game.current_player
       return winner
-    uno.next_player()
-    uno.penalize()
+    game.next_player()
+    game.penalize()

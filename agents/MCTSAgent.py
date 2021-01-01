@@ -1,6 +1,9 @@
+from agents.greedyAgent import GreedyAgent
+from agents.utils.mcts import MCTS
 from random import choice
-from utils.constants import INT2CARD
+from utils.constants import INT2CARD, INTACT2TUPLE
 from agents.utils.baseAgent import BaseAgent
+
 import numpy as np
 from utils import util
 from utils.util import *
@@ -16,20 +19,11 @@ class OpponentSimulator:
     deck = util.initialize_deck(visible_cards, True)
     weights = np.zeros(len(self.opponents))
 
-    # m = 0
-
     for i, o in enumerate(self.opponents):
       w = o.do_action(action, valid, deck, draw)
       weights[i] = w
-    #   if w > m:
-    #     mo = o
-    #     m = w
 
     weights /= weights.sum()
-
-    # print(m)
-    # print(mo)
-
     self.weights = weights
 
     self.resample(weights)
@@ -41,8 +35,8 @@ class OpponentSimulator:
     self.opponents = new_opponents
     self.weights = [self.weights[i] for i in samples]
 
-    for i in range(20):
-      print(self.opponents[i], self.weights[i])
+    # for i in range(20):
+      # print(self.opponents[i], self.weights[i])
 
   def sample(self, size):
     choices = np.random.choice(len(self.opponents), size)
@@ -87,8 +81,9 @@ class Opponent:
     return s
 
 class MCTSAgent(BaseAgent):
-  def __init__(self):
-    pass
+  def __init__(self, tree_number, mcts_iter):
+    self.tree_number = tree_number
+    self.mcts_iter = mcts_iter
 
   def receive_availiable_cards(self, available, i):
     if i != self.id:
@@ -98,27 +93,70 @@ class MCTSAgent(BaseAgent):
     if i != self.id:  
       visible_cards = self.game.get_visible_cards(self.id)
 
-      print('start simulation')
       self.opponents[i].do_action(action, self.available_cards[i], 
                                   visible_cards, self.draw[i])
       
       self.draw[i] = 0
+
+  def receive_draw(self, id, d):
+    if id != self.id:
+      self.draw[id] = d
 
   def init_game(self, hand, id, players, game):
     self.hand = hand
     self.id = id
     self.players = players
     self.game = game
-    self.opponents = {i: OpponentSimulator(hand, 1000) 
+    self.opponents = {i: OpponentSimulator(hand, 200) 
                       for i in set(players) - {id}}
     self.available_cards = {i: None 
                       for i in set(players) - {id}}
     self.draw = {i: 0
                       for i in set(players) - {id}}
 
-  def get_action(self, state, possible_actions):
-    return possible_actions[0], 0
+  def get_action(self, state, possible_actions, _):
+    if len(possible_actions) == 1 or (len(possible_actions) == 2 and possible_actions[1] == 54):
+      return possible_actions[0], 0
+    results_summation = np.zeros(61)
+    for i in range(self.tree_number):
+      opponents_hands = {i: j.sample(1)[0].hand for i, j in self.opponents.items()}
+      try: 
+        new_game = create_game(self.game, opponents_hands)
+      except ValueError:
+        return possible_actions[0], 0
+      mcts = MCTS(new_game, self.id)
+      results = mcts.search(self.mcts_iter)
+    results_summation += results
 
-  def receive_draw(self, id, d):
-    if id != self.id:
-      self.draw[id] = d
+    action = np.argmax(results)
+    return INTACT2TUPLE[action]
+
+def create_game(game, opponent_hands):
+  new_game = deepcopy(game)
+  tmp_deck = new_game.deck
+  new_agents = [GreedyAgent() for i in range(len(new_game.agents))]
+  new_game.agents = new_agents
+  for i in new_game.hands:
+    if i in opponent_hands.keys():
+      tmp_deck += inthand2card(new_game.hands[i])
+      new_game.hands[i] = opponent_hands[i]
+  
+  for hand in opponent_hands.values():
+    for i in range(len(hand)):
+      for _ in range(hand[i]):
+        tmp_deck.remove(INT2CARD[i])
+  
+  shuffle(tmp_deck)
+  new_game.deck = tmp_deck
+  return new_game
+
+def inthand2card(hand):
+  cards = []
+  for i in range(len(hand)):
+    for _ in range(hand[i]):
+      cards.append(INT2CARD[i])
+
+  return cards
+
+
+
