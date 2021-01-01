@@ -7,14 +7,14 @@ class GreedyAgent(BaseAgent):
   def __init__(self):
     super().__init__()
 
-  def get_action(self, state, possible_actions):
+  def get_action(self, state, possible_actions, aux):
     return possible_actions[0], choice(4)
     
 class GreedierAgent(BaseAgent):
   def __init__(self):
     super().__init__()
 
-  def get_action(self, state, possible_actions):
+  def get_action(self, state, possible_actions, aux):
 
     if possible_actions[0] % 13 == 12 and len(possible_actions) != 1:
       return possible_actions[1], choice(4)

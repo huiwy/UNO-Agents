@@ -8,5 +8,5 @@ class RandomAgent(BaseAgent):
     super().__init__()
     self.name = name
 
-  def get_action(self, state, possible_actions):
+  def get_action(self, state, possible_actions, aux):
     return choice(possible_actions), choice(4)
