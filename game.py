@@ -121,15 +121,18 @@ class UNO:
     state = self.get_state()
     possible_actions = self.get_valid_actions()
 
-    possible_cards = DECK if self.mode == 'infinite deck' else self.wasted
-
-    aux = {"current_player": self.current_player, \
-          "hands": self.hands, \
-          "possible_cards": possible_cards
-    }
+    aux = None
     action = self.agents[self.current_player].get_action(state, possible_actions, aux)
     return action
+  
+  def get_possible_drawn_cards(self):
+    """get_state
+    Get the cards that may be drawn.
+    """
+    possible_cards = DECK if self.mode == 'infinite deck' else self.wasted
+    return possible_cards
 
+  
   def get_state(self):
     """get_state
     Get the state representation of the current player
@@ -313,12 +316,59 @@ class UNO:
 
   def get_visible_cards(self, id):
     if self.mode == "infinite deck":
-      return self.hands
+      return self.hands[id].copy()
     else: 
       visible = self.hands[id].copy()
       for i in self.wasted:
         visible[CARD2INT[i]] += 1
       return visible
+    
+  def simulate_action(self, action):
+    """apply_action
+    Apply action i to current player.
+    
+    Parameters
+    ---
+    Action: tuple[int, int]
+      the first int is the card to play 54 means draw, the second is wild color if necessary.
+    Returns
+    ---
+    Boolean:
+        Whether this player decides to draw.
+    """
+
+    if action[0] == 54:
+      # draw 1 card
+      idx = CARD2INT[action[1]]
+      self.hands[self.current_player][idx] += 1
+      # if draw, it is still the current player's turn.
+      return False
+
+    if action[0] in [52, 53]:
+      # Wild or +4
+      self.previous_card = COLORS[action[1]]
+      self.penalty = '+4' if action[0] == 53 else None
+    elif action[0] % 13 == 10:
+      # +2
+      self.previous_card = action[0]
+      self.penalty = '+2'
+    elif action[0] % 13 == 11:
+      # skip
+      self.previous_card = action[0]
+      self.penalty = 'skip'
+    elif action[0] % 13 == 12:
+      # reverse
+      self.previous_card = action[0] 
+      self.direction *= -1
+    else:
+      # normal card
+      self.previous_card = action[0]
+
+    if self.mode != "infinite deck":
+      self.wasted.append(INT2CARD[action[0]])
+    # remove the card
+    self.hands[self.current_player][action[0]] -= 1
+    return True
 
 def play(game):
   """

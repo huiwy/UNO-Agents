@@ -1,14 +1,28 @@
 from agents.utils.baseAgent import BaseAgent
+from agents.greedyAgent import GreedyAgent
 from utils.constants import DECK, INT2CARD, CARD2INT, COLORS
 
 from .utils.evaluationFunc import naiveEvaluate
+from utils import util
+
+from copy import copy, deepcopy
+from random import choice
+from random import shuffle
+
+import numpy as np
 
 class ExpectimaxAgent(BaseAgent):
     def __init__(self, name="ExpectimaxAgent", maxDepth=10, evaluateFunc=naiveEvaluate):
         super().__init__()
         self.name = name
-        self.maxDepth = 10
+        self.max_depth = 3
+        self.depth_count = 0
         self.evaluateFunc = evaluateFunc
+    
+    def init_game(self, hand, id, players, game):
+        self.id = id
+        self.players = players
+        self.game = game
     
     def get_action(self, state, possible_actions, aux):
         """get_action
@@ -20,53 +34,149 @@ class ExpectimaxAgent(BaseAgent):
                 current_player (int): the index of current player
                 hands ({i:np.zeros(54)...}): all agents' hands
         Return:
-            [int, int]: [action, color(when necessary)]
+            des_max: [int, int]: [action, color(when necessary)]
         """
-        hands = aux['hands']
-        current_player = aux['current_player']
-        possible_cards = aux['possible_cards']
+        eval_max, des_max = self.find_max_action_and_eval(self.game)
 
-        card2Prob = {}
-        for card in possible_cards:
-            if card in card2Prob:
-                card2Prob[card] += 1
+        return des_max
+
+    def find_max_action_and_eval(self, game):
+        self.depth_count += 1
+        if self.depth_count > self.max_depth:
+            self.depth_count = 0
+            return None, self.evaluateFunc(game)
+
+        actions = game.get_valid_actions
+        possible_drawn_cards = game.get_possible_drawn_cards
+        extended_actions = extend_actions(actions, possible_drawn_cards)
+
+        action_deses = []
+        action_evals = []
+        if len(extended_actions['draw']) > 0:
+            action_des, action_eval = evaluate_draw(game, extended_actions['draw'])
+            action_deses.append(action_des)
+            action_evals.append(action_eval)
+        if len(extended_actions['other']) > 0:
+            for action in extended_actions['other']:
+                action_des, action_eval = evaluate_other(game)
+                action_deses.append(action_des)
+                action_evals.append(action_eval)
+        
+        eval_max = max(action_evals)
+        des_max = action_deses[action_evals.index(eval_max)]
+
+        return eval_max, des_max
+
+    def evaluate_draw(self, game, draw_actions):
+        action_des = (54, None)
+        action_evals = []
+
+        for draw_action in draw_actions:
+            tmp_game = create_game(game)
+            eval_score = 0
+            is_over, winner = simulate_one_round(tmp_game, draw_action)
+            if is_over:
+                if winner == game.current_player:
+                    eval_score = 1000
+                else:
+                    eval_score = -1000
             else:
-                card2Prob[card] = 1
-        card2Prob.update({k: card2Prob[k]/len(possible_cards) \
-            for k in card2Prob.keys()})
+                eval_score, des_max = self.find_max_action_and_eval(tmp_game)
+            action_evals.append(eval_score)
 
-        optimalEvalVal = float('-inf')
-        optimalAction = None
-        optimalColor = None
+        action_eval = sum(action_evals)/len(action_evals)
+        return (action_des, action_eval)
 
-        # It it necessary to copy the hands in case of the change of hands in UNO
-        # when trying every single possible result under possible actions.
-        # Also, dict.copy() is not a deep copy. Directly performing hands.copy() is no use.
-        for action in possible_actions:
-            if action == 54: # Draw
-                evalVal = 0
-                for card in possible_cards:
-                    tempHands = {i:hands[i].copy() for i in range(len(hands))}
-
-                    tempHands[current_player][CARD2INT[card]] += 1
-                    evalVal += self.evaluateFunc(current_player, tempHands) * card2Prob[card]
-            elif action in [52, 53]: # wild, +4
-                tempHands = {i:hands[i].copy() for i in range(len(hands))}
-                
-                tempHands[current_player][action] -= 1
-
-                evalVal = self.evaluateFunc(current_player, tempHands)
-                optimalColor = 0 # This should be implemented.
+    def evaluate_other(self, game, other_action):
+        action_des = other_action
+        tmp_game = create_game(game)
+        eval_score = 0
+        is_over, winner = simulate_one_round(tmp_game, other_action)
+        if is_over:
+            if winner == game.current_player:
+                eval_score = 1000
             else:
-                tempHands = {i:hands[i].copy() for i in range(len(hands))}
-
-                tempHands[current_player][action] -= 1
-                evalVal = self.evaluateFunc(current_player, hands)
+                eval_score = -1000
+        else:
+            eval_score, des_max = self.find_max_action_and_eval(tmp_game)
             
-            if evalVal > optimalEvalVal:
-                optimalEvalVal = evalVal
-                optimalAction = action
-        # print('optimalEvalVal:%s, optimalAction: %s' % (optimalEvalVal, optimalAction))
+        return action_des, eval_score
 
-        # only implemented searching with depth=0
-        return optimalAction, optimalColor
+def create_game(game):
+    """
+    In this function, we create a new game from game.
+    And we also randomly shuffle opponents' hands.
+    """
+    new_game = deepcopy(game)
+    new_agents = [GreedyAgent() for i in range(len(new_game.agents))]
+    for i, agent in enumerate(new_agents):
+        agent.id = i
+    new_game.agents = new_agents
+
+    opponent_ids = new_game.players
+    opponent_ids.remove(new_game.current_player)
+
+    # Randomly distribute opponents' hands
+    opponent_hands = []
+    for i in new_game.hands:
+        if i != new_game.current_player:
+            # Firstly take the hands back
+            new_game.hands[i] = np.zeros(54, dtype=np.uint8)
+            opponent_hands += inthand2card(new_game.hands[i])
+
+    for card in opponent_hands:
+        # Reassign the cards
+        assign_to = choice(opponent_ids)
+        new_game.hands[assign_to][CARD2INT[card]] += 1
+
+    return new_game
+
+def simulate_one_round(game, action):
+    """
+    Return (if the game is terminated, winner)
+    """
+    # Current agent's turn
+    current_agent_id = game.current_player
+    game.simulate_action(action)
+    if game.current_win():
+        winner = game.current_player
+        return (True, winner)
+    game.next_player()
+    game.penalize()
+
+    # Opponents' turns
+    while (game.current_player != current_agent_id):
+        while True:
+            action = game.get_action()
+            if game.apply_action(action):
+                break
+        if game.current_win():
+            winner = game.current_player
+            return (True, winner)
+        game.next_player()
+        game.penalize()
+    
+    return (False, None)
+
+def inthand2card(hand):
+  cards = []
+  for i in range(len(hand)):
+    for _ in range(hand[i]):
+      cards.append(INT2CARD[i])
+
+  return cards
+
+def extend_actions(actions, possible_drawn_cards):
+    extended_actions = {}
+
+    for action in actions:
+        if action == 54:
+            for c in possible_drawn_cards:
+                extended_actions[str(action)].append((action, c))
+        elif action in [52, 53]: # Wild, +4
+            for color in range(len(COLORS)):
+                temp = (action, color)
+                extended_actions['other'].append(temp)
+        else:
+            extended_actions['other'].append((action, None))
+    return extended_actions

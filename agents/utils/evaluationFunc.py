@@ -1,7 +1,11 @@
 from utils.constants import DECK, INT2CARD, CARD2INT, COLORS
 
+def naiveEvaluate(game):
+    eval_score = 0
+    return eval_score
+
 # Very naive evaluation function is implemented. QAQ
-def naiveEvaluate(current_player, hands):
+def _naiveEvaluate(current_player, hands):
     """
     Args:
         hand (np.zeros(54)): The current agent A's hand

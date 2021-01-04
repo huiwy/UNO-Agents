@@ -107,7 +107,7 @@ class MCTSAgent(BaseAgent):
     self.id = id
     self.players = players
     self.game = game
-    self.opponents = {i: OpponentSimulator(hand, 200) 
+    self.opponents = {i: OpponentSimulator(hand, 200)
                       for i in set(players) - {id}}
     self.available_cards = {i: None 
                       for i in set(players) - {id}}
@@ -140,7 +140,7 @@ def create_game(game, opponent_hands):
     if i in opponent_hands.keys():
       tmp_deck += inthand2card(new_game.hands[i])
       new_game.hands[i] = opponent_hands[i]
-  
+                                                                     
   for hand in opponent_hands.values():
     for i in range(len(hand)):
       for _ in range(hand[i]):
