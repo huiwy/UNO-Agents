@@ -15,7 +15,7 @@
 # Add more restrictions to make the game simpler.
 
 from numpy.lib.arraysetops import isin
-from agents.dqnAgent import DQNAgent
+from agents.DQNAgent import DQNAgent
 from itertools import cycle
 from random import choice, shuffle
 import numpy as np
@@ -92,6 +92,8 @@ class UNO:
     self.penalty = None
     self.mode = mode
 
+    self.turns = 1
+
     for i in self.players:
       for _ in range(7):
         self.draw(i)
@@ -164,7 +166,6 @@ class UNO:
 
         Whether this player decides to draw.
     """
-
     for a in self.agents:
       a.receive_action(action, self.current_player)
 
@@ -293,6 +294,8 @@ class UNO:
       self.current_player = 0
     elif self.current_player == -1:
       self.current_player = len(self.players) - 1
+    
+    self.turns += 1
 
   def penalize(self):
     """
@@ -385,7 +388,9 @@ def play(game):
   Whether the deck is "infinite deck" or "finite deck", default "infinite deck".
   """
   while True:
+    # print("agent %s's turn:" % game.current_player)
     while True:
+      # print(' try')
       action = game.get_action()
       if game.apply_action(action):
         break
@@ -394,3 +399,6 @@ def play(game):
       return winner
     game.next_player()
     game.penalize()
+    # if game.turns%100 == 0:
+    #   print(game.hands)
+  print(game.turns)
