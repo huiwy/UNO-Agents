@@ -225,13 +225,13 @@ class UNO:
     # the wild cards must be available
     available_cards[52:] = 1
     # wild card cases
-    if self.previous_card == 'R':
+    if self.previous_card == 'r':
       available_cards[:13] = 1
-    elif self.previous_card == 'Y':
+    elif self.previous_card == 'y':
       available_cards[13:26] = 1
-    elif self.previous_card == 'G':
+    elif self.previous_card == 'g':
       available_cards[26:39] = 1
-    elif self.previous_card == 'B':
+    elif self.previous_card == 'b':
       available_cards[39:52] = 1
     elif self.previous_card == None:
       # no card is played

@@ -20,7 +20,7 @@ class MCTSNode:
 
     if a == 60:
       self.value = -10
-      self.visited_times = 1
+      self.visited_times = 5
 
   def UCBscore(self, t):
     if self.visited_times == 0:

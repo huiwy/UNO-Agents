@@ -59,6 +59,9 @@ class DQNOracle:
 
     self.counter = train_every
 
+    self.loss = []
+    self.loss_buffer = []
+
   def get_Q(self, state):
     with torch.no_grad():
       self.dqn.eval()
@@ -99,10 +102,12 @@ class DQNOracle:
     value_arr = np.array(self.value_memory)[sample_idx]
 
     exp_dataset = EXPDataset(state_arr, action_arr, value_arr)
-    exp_loader = DataLoader(exp_dataset, batch_size=4, shuffle=True, drop_last=True)
+    exp_loader = DataLoader(exp_dataset, batch_size=32, shuffle=True, drop_last=True)
 
     device = self.device
     criterion = nn.MSELoss()
+
+    total_loss = 0
 
     for _ in range(self.epoches):
       for _, data in enumerate(exp_loader):
@@ -117,8 +122,18 @@ class DQNOracle:
         loss = criterion(pred_value[torch.arange(state.size(0)), action.long()], value.float()).float()
         # loss = dir_loss(head_pos, gt_gaze, pred_dir)
         loss.backward()
+        total_loss += loss.item()
 
         # nn.utils.clip_grad_norm_(model.parameters(), 0.001)
         self.optimizer.step()
-    
     self.dqn.train()
+
+    self.loss_buffer.append(total_loss/4)
+    if len(self.loss_buffer) == 1000:
+      self.loss.append(np.mean(self.loss_buffer))
+      self.loss_buffer = []
+      print(self.loss[-1])
+      if self.loss[-1] < 0.001:
+        self.optimizer.lr = 0.00001
+    
+    
