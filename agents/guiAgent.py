@@ -8,7 +8,7 @@ class GUIAgent(BaseAgent):
     self.name = name
     self.scope = scope
 
-  def get_action(self, state, possible_actions, b):
+  def get_action(self, state, possible_actions):
     self.scope["require_action"] = True
     self.scope["action"] = None
     self.scope["selected_color"] = None

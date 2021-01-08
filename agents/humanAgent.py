@@ -7,7 +7,7 @@ class HumanAgent(BaseAgent):
     super().__init__()
     self.name = name
 
-  def get_action(self, state, possible_actions, _):
+  def get_action(self, state, possible_actions):
     print("="*20 + " %s\'s turn " % self.name + "="*20)
 
     if state[1] in COLORS:

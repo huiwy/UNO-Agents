@@ -114,7 +114,7 @@ class MCTSAgent(BaseAgent):
     self.draw = {i: 0
                       for i in set(players) - {id}}
 
-  def get_action(self, state, possible_actions, _):
+  def get_action(self, state, possible_actions):
     if len(possible_actions) == 1 or (len(possible_actions) == 2 and possible_actions[1] == 54):
       return possible_actions[0], 0
     results_summation = np.zeros(61)

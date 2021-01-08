@@ -14,8 +14,7 @@
 # The information provided by the environment is not sufficient
 # Add more restrictions to make the game simpler.
 
-from numpy.lib.arraysetops import isin
-from agents.DQNAgent import DQNAgent
+from agents.dqnAgent import DQNAgent
 from itertools import cycle
 from random import choice, shuffle
 import numpy as np
@@ -123,8 +122,7 @@ class UNO:
     state = self.get_state()
     possible_actions = self.get_valid_actions()
 
-    aux = None
-    action = self.agents[self.current_player].get_action(state, possible_actions, aux)
+    action = self.agents[self.current_player].get_action(state, possible_actions)
     return action
   
   def get_possible_drawn_cards(self):

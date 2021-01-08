@@ -21,7 +21,7 @@ def naiveEvaluate(game):
     # This has a good effect on random agents
     # return  wildCardRate*10 + plus4CardRate*10 + 100/cardNumOfCurAgent
 
-    return wildCardRate*20 + plus4CardRate*20 + plus2CardRate*10 + 100/cardNumOfCurAgent
+    return 100/hands[current_player].sum()
 
 # Very naive evaluation function is implemented. QAQ
 def _naiveEvaluate(game):

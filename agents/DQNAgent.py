@@ -2,7 +2,6 @@ import torch
 from agents.utils.baseAgent import BaseAgent
 from .utils.dqn import DQNOracle
 
-from time import time
 from random import choice, randint, random
 import numpy as np
 class DQNAgent(BaseAgent):
@@ -17,7 +16,7 @@ class DQNAgent(BaseAgent):
     self.exploit = False
 
 
-  def get_action(self, state, possible_actions, _):
+  def get_action(self, state, possible_actions):
     astate = state[0]
 
     

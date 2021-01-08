@@ -1,5 +1,7 @@
 # Cards, colors, and their maps
 
+import numpy as np
+
 COLORS = ['r', 'y', 'g', 'b']
 UCARDS = ['+2', 'skip', 'reverse']
 DECK = []
@@ -55,3 +57,23 @@ TUPLEACT2INT[(53, 0)] = 56
 TUPLEACT2INT[(53, 1)] = 57
 TUPLEACT2INT[(53, 2)] = 58
 TUPLEACT2INT[(53, 3)] = 59
+
+VALIDACTION = []
+for i in range(52):
+  valid = np.zeros(60)
+  num = i % 13
+  color = i // 13
+  valid[13*color:13*(1+color)] = 1
+  valid[num] = 1
+  valid[num+13] = 1
+  valid[num+26] = 1
+  valid[num+39] = 1
+  valid[52:] = 1
+  VALIDACTION.append(valid)
+
+for i in range(8):
+  color = i % 4
+  valid = np.zeros(60)
+  valid[13*color:13*(1+color)] = 1
+  valid[52:] = 1
+  VALIDACTION.append(valid)

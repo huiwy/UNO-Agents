@@ -37,13 +37,13 @@ a1 = DQNAgent(10000, 54*5, [512, 512], 55, 2, 0.1, "cuda")
 
 
 
-# a1 = MCTSAgent(5, 100)
-a1.load()
-a1.toexploit()
-a2 = RandomAgent()
-o = np.zeros(200)
-for i in range(200):
-  g = game.UNO([a1, a2, a2, a2], "fin", False, False)
+a1 = ExpectimaxAgent(1)
+# a1.load()
+# a1.toexploit()
+a2 = GreedyAgent()
+o = np.zeros(100)
+for i in range(100):
+  g = game.UNO([a1, a2], "fin", False, False)
   o[i] = game.play(g)
   print(o[i])
 print((o==0).mean())
