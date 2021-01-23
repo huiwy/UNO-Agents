@@ -1,3 +1,4 @@
+# implementation reference: https://github.com/bennuttall/uno
 from random import shuffle, choice, randint
 from itertools import product, repeat, chain
 from threading import Thread
