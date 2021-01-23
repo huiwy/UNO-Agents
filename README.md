@@ -3,7 +3,7 @@ Final project of CS181 introduction to artificial intelligence in Shanghaitech.
 
 ---
 
-Simple implementations of artificial intelligent UNO agents. 4 kind of agents are included:
+Simple implementations of artificial intelligent UNO agents. 4 agents are included:
 - MCTSAgent
 - ExpectimaxAgent
 - DQNAgent
